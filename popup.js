@@ -9,7 +9,7 @@ const bar = document.querySelector("#bar");
 const modKey = document.querySelector("#mod");
 
 const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-if (mac && modKey) modKey.textContent = "\u2318";
+if (mac && modKey) modKey.textContent = "Cmd";
 
 let settings = { delay: 0, hideSticky: true, lazy: true };
 
@@ -41,15 +41,15 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type !== "wf-progress") return;
   if (msg.phase === "wait") {
     track.hidden = true;
-    setStatus(`Capturing in ${msg.delay}s \u2014 dismiss anything covering the page.`);
+    setStatus(`Capturing in ${msg.delay}s - dismiss anything covering the page.`);
   } else if (msg.phase === "warm") {
     track.hidden = false;
     bar.style.width = "8%";
-    setStatus("Scrolling to load images\u2026");
+    setStatus("Scrolling to load images...");
   } else if (msg.phase === "prepare") {
     track.hidden = false;
     bar.style.width = "4%";
-    setStatus("Measuring the page\u2026");
+    setStatus("Measuring the page...");
   } else if (msg.phase === "capture") {
     track.hidden = false;
     const pct = Math.round((msg.progress || 0) * 100);
@@ -58,7 +58,7 @@ chrome.runtime.onMessage.addListener((msg) => {
   } else if (msg.phase === "done") {
     track.hidden = false;
     bar.style.width = "100%";
-    setStatus("Opening the screenshot\u2026");
+    setStatus("Opening the screenshot...");
     setBusy(false);
   } else if (msg.phase === "error") {
     track.hidden = true;
@@ -80,7 +80,7 @@ async function run(mode) {
   setBusy(true);
   track.hidden = false;
   bar.style.width = "2%";
-  setStatus(mode === "full" ? "Starting full-page capture\u2026" : "Capturing the visible area\u2026");
+  setStatus(mode === "full" ? "Starting full-page capture..." : "Capturing the visible area...");
   const response = await chrome.runtime.sendMessage({ type: "wf-start", mode });
   if (!response?.ok) {
     setBusy(false);

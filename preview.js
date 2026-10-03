@@ -52,7 +52,7 @@ async function load() {
   shot.src = objectUrl;
   shot.hidden = false;
   const kind = record.mode === "visible" ? "Visible area" : "Full page";
-  meta.textContent = `${kind} \u00b7 ${record.width} \u00d7 ${record.height} \u00b7 ${formatBytes(record.bytes)}`;
+  meta.textContent = `${kind} | ${record.width} x ${record.height} | ${formatBytes(record.bytes)}`;
   meta.title = record.url || "";
   const notes = [];
   if (record.capped) notes.push("Stopped at 50,000 pixels so an endless page cannot freeze the browser.");
