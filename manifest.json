@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Wholeframe",
+  "version": "1.0.0",
+  "description": "Capture a screenshot of the entire page, not just the visible area.",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "scripting", "downloads", "storage", "offscreen", "contextMenus"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Wholeframe — full page screenshot"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "commands": {
+    "capture-full": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Capture the full page"
+    },
+    "capture-visible": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Capture the visible area"
+    }
+  }
+}
