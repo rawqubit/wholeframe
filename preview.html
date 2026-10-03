@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wholeframe screenshot</title>
+    <link rel="stylesheet" href="preview.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <div class="id">
+        <span class="mark" aria-hidden="true"></span>
+        <div>
+          <p class="brand">Wholeframe</p>
+          <p id="meta" class="meta">Loading screenshot…</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="copy" type="button" class="ghost">Copy</button>
+        <button id="jpeg" type="button" class="ghost">Download JPEG</button>
+        <button id="png" type="button" class="primary">Download PNG</button>
+      </div>
+    </header>
+    <main>
+      <p id="note" class="note" hidden></p>
+      <img id="shot" alt="Captured page" />
+      <p id="empty" class="empty" hidden>No screenshot yet. Use the toolbar icon to capture a page.</p>
+    </main>
+    <script type="module" src="preview.js"></script>
+  </body>
+</html>

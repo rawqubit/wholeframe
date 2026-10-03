@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wholeframe</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="top">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <p class="brand">Wholeframe</p>
+        <p class="tag">The whole page, one image.</p>
+      </div>
+    </header>
+
+    <button id="full" class="primary" type="button">Capture full page</button>
+    <button id="visible" class="ghost" type="button">Visible area only</button>
+
+    <section class="options" aria-label="Capture options">
+      <div class="row">
+        <span class="label">Wait before capture</span>
+        <div class="seg" id="delay" role="group" aria-label="Delay">
+          <button type="button" data-delay="0">None</button>
+          <button type="button" data-delay="1">1s</button>
+          <button type="button" data-delay="2">2s</button>
+          <button type="button" data-delay="3">3s</button>
+        </div>
+      </div>
+      <label class="check">
+        <input id="hideSticky" type="checkbox" />
+        <span>Keep sticky bars only on the first screen</span>
+      </label>
+      <label class="check">
+        <input id="lazy" type="checkbox" />
+        <span>Scroll first so lazy images load</span>
+      </label>
+    </section>
+
+    <footer>
+      <p id="status">Shortcut <kbd id="mod">Ctrl</kbd><kbd>Shift</kbd><kbd id="key">Y</kbd></p>
+      <div id="track" class="track" hidden>
+        <span id="bar"></span>
+      </div>
+    </footer>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
