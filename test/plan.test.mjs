@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filenameFor, outputSize, planSlices } from "../plan.js";
+import { filenameFor, outputSize, planSlices, CAPTURE_MIN_INTERVAL_MS, captureQuotaDelay, captureScheduleFitsQuota, isCaptureQuotaError, nextCaptureSlot } from "../plan.js";
 
 test("covers a page exactly once", () => {
   const slices = planSlices(2500, 800);
@@ -46,4 +46,35 @@ test("keeps a normal screenshot at device scale", () => {
 test("builds a safe filename", () => {
   const name = filenameFor("Hello / World!!!", new Date(2026, 3, 5, 9, 8, 7));
   assert.equal(name, "wholeframe-hello-world-20260405-090807.png");
+});
+
+test("spaces captures inside Chrome's 2-per-second quota", () => {
+  assert.equal(captureQuotaDelay(1000, 1000), 0);
+  assert.equal(captureQuotaDelay(1000, 900), 0);
+  assert.equal(captureQuotaDelay(1000, 1600), 600);
+  assert.equal(nextCaptureSlot(1000), 1000 + CAPTURE_MIN_INTERVAL_MS);
+
+  const paced = [];
+  let t = 0;
+  for (let i = 0; i < 30; i++) {
+    t += captureQuotaDelay(t, i === 0 ? 0 : nextCaptureSlot(paced[i - 1]));
+    paced.push(t);
+    t = nextCaptureSlot(t);
+  }
+  assert.equal(captureScheduleFitsQuota(paced), true);
+
+  const tooFast = Array.from({ length: 6 }, (_, i) => i * 40);
+  assert.equal(captureScheduleFitsQuota(tooFast), false);
+  assert.equal(captureScheduleFitsQuota([0, 500, 1000]), false);
+  assert.equal(captureScheduleFitsQuota([0, 1000, 2000], 1, 1000), false);
+  assert.equal(captureScheduleFitsQuota([0, 1100, 2200, 3300], 1, 1000), true);
+  assert.equal(captureScheduleFitsQuota([0, 600, 1200, 1800]), true);
+});
+
+test("recognizes the capture quota error", () => {
+  assert.equal(
+    isCaptureQuotaError("This request exceeds the MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND quota."),
+    true,
+  );
+  assert.equal(isCaptureQuotaError("Could not access this tab."), false);
 });

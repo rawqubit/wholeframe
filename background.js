@@ -1,4 +1,14 @@
-import { filenameFor, outputSize, planSlices } from "./plan.js";
+import {
+  CAPTURE_MIN_INTERVAL_MS,
+  CAPTURE_QUOTA_BACKOFF_MS,
+  CAPTURE_QUOTA_RETRIES,
+  captureQuotaDelay,
+  filenameFor,
+  isCaptureQuotaError,
+  nextCaptureSlot,
+  outputSize,
+  planSlices,
+} from "./plan.js";
 
 const MAX_CSS_HEIGHT = 50000;
 const DEFAULTS = {
@@ -8,6 +18,8 @@ const DEFAULTS = {
 };
 
 let running = false;
+/** Earliest time the next captureVisibleTab call may start. Chrome allows 2/s. */
+let nextCaptureAt = 0;
 
 function drawIcon(size) {
   const canvas = new OffscreenCanvas(size, size);
@@ -140,6 +152,35 @@ async function getSettings() {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function captureFrame(windowId) {
+  for (let attempt = 0; attempt <= CAPTURE_QUOTA_RETRIES; attempt++) {
+    const wait = captureQuotaDelay(Date.now(), nextCaptureAt);
+    if (wait > 0) await sleep(wait);
+    let dataUrl = "";
+    let message = "";
+    try {
+      dataUrl = (await chrome.tabs.captureVisibleTab(windowId, { format: "png" })) || "";
+    } catch (err) {
+      message = err?.message || String(err);
+    }
+    if (!message && chrome.runtime.lastError?.message) {
+      message = chrome.runtime.lastError.message;
+    }
+    // Count the gap from when this call finished, not when it started.
+    nextCaptureAt = nextCaptureSlot(Date.now(), CAPTURE_MIN_INTERVAL_MS);
+    if (dataUrl && !message) return dataUrl;
+    const quota = isCaptureQuotaError(message);
+    if (!quota || attempt === CAPTURE_QUOTA_RETRIES) {
+      if (quota) {
+        throw new Error("Chrome is limiting screenshots right now. Wait a moment and try again.");
+      }
+      throw new Error(message || "Chrome did not return an image.");
+    }
+    nextCaptureAt = nextCaptureSlot(Date.now(), CAPTURE_QUOTA_BACKOFF_MS);
+  }
+  throw new Error("Chrome is limiting screenshots right now. Wait a moment and try again.");
 }
 
 async function rememberError(err) {
@@ -293,8 +334,7 @@ async function startCapture(mode) {
 
       if (mode === "visible") {
         await ensureOffscreen();
-        const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
-        if (!dataUrl) throw new Error("Chrome did not return an image.");
+        const dataUrl = await captureFrame(tab.windowId);
         const saved = await stitch({
           op: "visible",
           dataUrl,
@@ -327,8 +367,7 @@ async function startCapture(mode) {
         }
         await callPage(tab.id, "waitPaint");
         await sleep(i === 0 ? 60 : 40);
-        const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
-        if (!dataUrl) throw new Error("Chrome did not return an image. Try the visible-area capture.");
+        const dataUrl = await captureFrame(tab.windowId);
         const srcOffset = slice.dest - pos.scrollY;
         await stitch({
           op: "draw",

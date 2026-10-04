@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Wholeframe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Capture a screenshot of the entire page, not just the visible area.",
   "minimum_chrome_version": "116",
   "permissions": ["activeTab", "scripting", "downloads", "storage", "offscreen", "contextMenus"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Wholeframe — full page screenshot"
+    "default_title": "Wholeframe - full page screenshot"
   },
   "background": {
     "service_worker": "background.js",

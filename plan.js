@@ -25,6 +25,56 @@ export function planSlices(fullHeight, viewportHeight) {
 const MAX_DIM = 16384;
 const MAX_AREA = 48_000_000;
 
+/**
+ * Chrome rejects tabs.captureVisibleTab above 2 calls per second, and the
+ * window uses a strict greater-than check, so a gap of exactly 500ms or
+ * 1000ms still fails the next call. Wait until the previous capture has
+ * finished, then a little more than one second.
+ */
+export const CAPTURE_MIN_INTERVAL_MS = 1100;
+export const CAPTURE_QUOTA_BACKOFF_MS = 1500;
+export const CAPTURE_QUOTA_RETRIES = 4;
+
+/** Milliseconds to wait so the next capture starts at or after `nextAllowedAt`. */
+export function captureQuotaDelay(now, nextAllowedAt) {
+  const wait = Number(nextAllowedAt) - Number(now);
+  if (!Number.isFinite(wait) || wait <= 0) return 0;
+  return wait;
+}
+
+export function nextCaptureSlot(now, interval = CAPTURE_MIN_INTERVAL_MS) {
+  const t = Number(now);
+  const step = Number(interval);
+  if (!Number.isFinite(t)) return 0;
+  if (!Number.isFinite(step) || step < 0) return t;
+  return t + step;
+}
+
+export function isCaptureQuotaError(message) {
+  return /MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND/i.test(String(message || ""));
+}
+
+/**
+ * Chrome TimedLimit: `limit` tokens, refilled when a call arrives after the
+ * window that started on the previous refill. Returns false if any call
+ * would be rejected.
+ */
+export function captureScheduleFitsQuota(timestamps, limit = 2, windowMs = 1000) {
+  let tokens = 0;
+  let expiration = -Infinity;
+  for (const raw of timestamps) {
+    const t = Number(raw);
+    if (!Number.isFinite(t)) return false;
+    if (t > expiration) {
+      tokens = limit;
+      expiration = t + windowMs;
+    }
+    if (tokens <= 0) return false;
+    tokens -= 1;
+  }
+  return true;
+}
+
 /** Fit a full-page bitmap under Chrome canvas limits. */
 export function outputSize(cssWidth, cssHeight, deviceScale) {
   const cssW = Math.max(1, Number(cssWidth) || 1);

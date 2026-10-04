@@ -24,13 +24,20 @@ Chrome 116 or newer.
 
 | Action | Windows / Linux | Mac |
 | --- | --- | --- |
-| Full page | `Ctrl+Shift+Y` | `⌘⇧Y` |
-| Visible area | `Ctrl+Shift+U` | `⌘⇧U` |
+| Full page | `Ctrl+Shift+Y` | `Cmd+Shift+Y` |
+| Visible area | `Ctrl+Shift+U` | `Cmd+Shift+U` |
 
 Shortcuts can be changed at `chrome://extensions/shortcuts`.
 
+## Elsewhere
+
+- [Follow rawqubit on X](https://x.com/intent/follow?screen_name=rawqubit)
+- [Star Wholeframe on GitHub](https://github.com/rawqubit/wholeframe)
+- [Follow rawqubit on GitHub](https://github.com/rawqubit)
+
 ## Notes
 
+- Chrome allows only two screenshots per second, and a gap of exactly one second still trips that limit. Wholeframe waits until the previous shot has finished, then a little over a second, and retries if Chrome still says no. A tall page is slower because of that wait.
 - Browser pages (`chrome://`, the Web Store, the new tab) cannot be captured. That is a Chrome rule.
 - Pages taller than 50,000 pixels are cut off so an infinite feed cannot hang the browser.
 - Extremely tall captures may be scaled down to stay inside Chrome's canvas limits. The preview says so when that happens.
